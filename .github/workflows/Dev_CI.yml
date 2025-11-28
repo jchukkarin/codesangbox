@@ -12,24 +12,38 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Copy project to server via SSH
+      - name: Setup Node
+        uses: actions/setup-node@v3
+        with:
+          node-version: 18
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build Vue project
+        run: npm run build
+
+      - name: Upload build files via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.SERVER_IP }}   # ต้องเป็น IP หรือ Domain
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASS }}
-          source: "."
-          target: "/var/www/vue-login"
+          port: 22
+          source: "dist/*"
+          target: "/var/www/vue-app/"
+          overwrite: true
 
-      - name: Run deploy on server (docker-compose up -d)
+      - name: Deploy with Docker on remote server
         uses: appleboy/ssh-action@v1.0.3
         with:
-          host: ${{ secrets.SERVER_HOST }}
+          host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASS }}
+          port: 22
           script: |
             cd /var/www/vue-login
-            docker compose down
-            docker compose pull
+            docker compose down || true
+            docker compose pull || true
             docker compose up -d --build
             docker system prune -f
