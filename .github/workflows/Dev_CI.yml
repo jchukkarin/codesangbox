@@ -23,16 +23,22 @@ jobs:
       - name: Build Vue project
         run: npm run build
 
-      - name: Upload build files via SCP
+      - name: Run tests and generate
+        run: |
+          npm run test
+          npm run generate
+
+      - name: Upload files via SCP
         uses: appleboy/scp-action@v0.1.7
         with:
-          host: ${{ secrets.SERVER_IP }}   # ต้องเป็น IP หรือ Domain
+          host: ${{ secrets.SERVER_IP }}
           username: ${{ secrets.SERVER_USER }}
           password: ${{ secrets.SERVER_PASS }}
           port: 22
           source: "dist/*"
           target: "/var/www/vue-app/"
           overwrite: true
+          strip_components: 1
 
       - name: Deploy with Docker on remote server
         uses: appleboy/ssh-action@v1.0.3
@@ -42,7 +48,7 @@ jobs:
           password: ${{ secrets.SERVER_PASS }}
           port: 22
           script: |
-            cd /var/www/vue-login
+            cd /var/www/vue-app
             docker compose down || true
             docker compose pull || true
             docker compose up -d --build
