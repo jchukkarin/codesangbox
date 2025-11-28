@@ -14,5 +14,14 @@ services:
     volumes:
       - postgres_data:/var/lib/postgresql/data
 
+    app:
+      build: .
+      container_name: vue_app
+      restart: always
+      ports:
+        - "8080:8080"
+      depends_on:
+        - postgres
+
 volumes:
   postgres_data:
