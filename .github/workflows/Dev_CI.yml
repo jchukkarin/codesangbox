@@ -25,6 +25,7 @@ jobs:
 
       - name: Run tests and generate
         run: |
+          npm run unit
           npm run test
           npm run generate
 
